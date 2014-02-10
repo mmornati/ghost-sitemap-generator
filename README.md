@@ -12,7 +12,7 @@ usable everywhere.
 
 Crontab Example
 ---------------
-
+````bash
 0 0 * * * /usr/bin/ruby generate_ghost_sitemap.rb blog.mornati.net daily 0.5 /path/to/ghost/sitemap.xml
-
+````
 
