@@ -40,7 +40,7 @@ begin
         urlset.url do |p|
            #TODO: read settings -> permalinks
            #      read blog name
-           p.log 'http://' + site_base_url + '/' + post['slug'] + '/'
+           p.loc 'http://' + site_base_url + '/' + post['slug'] + '/'
            p.lastmod Time.parse(post['updated_at']).strftime("%Y-%m-%dT%H:%M:%S+00:00")
            p.changefreq change_freq
            p.priority priority
