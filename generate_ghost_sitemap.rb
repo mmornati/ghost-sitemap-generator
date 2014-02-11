@@ -32,20 +32,25 @@ begin
     con = Mysql.new 'localhost', 'ghost', 'ghostPWD', 'ghost'
     rs = con.query "select slug,updated_at from posts where status='published' order by id desc;"
     puts "Number of posts #{rs.num_rows}"
-    #xml = Builder::XmlMarkup.new( :indent => 2 )
     xml = MyXmlMarkup.new( :indent => 2 )
     xml.instruct! :xml, :encoding => "ASCII"
     xml.urlset do |urlset|
-      rs.each_hash do |post|
-        urlset.url do |p|
-           #TODO: read settings -> permalinks
-           #      read blog name
-           p.loc 'http://' + site_base_url + '/' + post['slug'] + '/'
-           p.lastmod Time.parse(post['updated_at']).strftime("%Y-%m-%dT%H:%M:%S+00:00")
-           p.changefreq change_freq
-           p.priority priority
+        urlset.url do |baseurl|
+            baseurl.loc 'http://' + site_base_url
+            baseurl.lastmod Time.now.strftime("%Y-%m-%dT%H:%M:%S+00:00")
+            baseurl.changefreq change_freq
+            baseurl.priority priority
         end
-      end
+        rs.each_hash do |post|
+          urlset.url do |p|
+             #TODO: read settings -> permalinks
+             #      read blog name
+             p.loc 'http://' + site_base_url + '/' + post['slug'] + '/'
+             p.lastmod Time.parse(post['updated_at']).strftime("%Y-%m-%dT%H:%M:%S+00:00")
+             p.changefreq change_freq
+             p.priority priority
+          end
+        end
     end
     xml_data = xml.target!
     file = File.new(dest_file, "wb")
