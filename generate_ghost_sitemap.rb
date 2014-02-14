@@ -8,6 +8,7 @@ require 'builder/xmlmarkup'
 require 'open-uri'
 require 'optparse'
 require 'pp'
+require 'nokogiri'
 
 class MyXmlMarkup < ::Builder::XmlMarkup
   def tag!(sym, *args, &block)
@@ -84,10 +85,14 @@ begin
 
     puts "Options Values:" unless !options[:verbose]
     pp options unless !options[:verbose] 
-    
+
+    doc = Nokogiri::XML(File.open(options[:destfile]))
+    previous_sitemap_url = doc.css("url").count
+    puts "Previous SiteMap Url: #{previous_sitemap_url}" unless !options[:verbose]
     con = Mysql.new options[:hostname], options[:user], options[:password], options[:dbname]
     rs = con.query "select slug,updated_at from posts where status='published' order by id desc;"
     tot_posts = rs.num_rows
+    tot_url = tot_posts + 1
     puts "Number of posts #{tot_posts}"
     xml = MyXmlMarkup.new( :indent => 2 )
     xml.instruct! :xml, :encoding => "ASCII"
@@ -126,14 +131,16 @@ begin
                p.priority options[:priority]
             end
         end
+        tot_url = tot_url + totalPages
     end
+    puts "Total url generated: #{tot_url}"
     xml_data = xml.target!
     file = File.new(options[:destfile], "wb")
     file.write(xml_data)
     file.close
  
     #Calling Google
-    unless options[:test]
+    unless options[:test] || tot_url==previous_sitemap_url 
     	url_google = "http://www.google.com/webmasters/tools/ping?sitemap=http%3A%2F%2F#{options[:site]}%2Fsitemap.xml"
     	response = open(url_google).read
     	puts response unless !options[:verbose] 
